@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Handlee&display=swap');
+
 /* src/index.css */
 * {
   box-sizing: border-box;
@@ -7,8 +9,44 @@ html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   background-color: #ffffff;
-  overflow: hidden;
   font-family: sans-serif;
+}
+body::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-hide {
+  overflow: auto;
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+.scroll-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.calendar {
+  font-family: 'Handlee', cursive;
+}
+.calendar-header,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.weekday-label {
+  text-align: left;
+  font-weight: bold;
+  padding: 8px;
+}
+
+.calendar-cell {
+  border: 1px solid #333;
+  min-height: 80px;
+  padding: 6px;
+}
+
+.day-number {
+  font-size: 14px;
 }
