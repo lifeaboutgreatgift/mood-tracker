@@ -10,21 +10,13 @@ html, body, #root {
   padding: 0;
   width: 100%;
   min-height: 100%;
-  background-color: #ffffff;
+  background-color: #fafafa;
   font-family: sans-serif;
 }
 body::-webkit-scrollbar {
   display: none;
 }
 
-.scroll-hide {
-  overflow: auto;
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-}
-.scroll-hide::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
 
 .calendar {
   font-family: 'Handlee', cursive;
@@ -42,7 +34,7 @@ body::-webkit-scrollbar {
 }
 
 .calendar-cell {
-  border: 1px solid #333;
+  border: 1px solid #abd1c6;
   min-height: 80px;
   padding: 6px;
 }
