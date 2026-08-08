@@ -20,25 +20,21 @@ function App() {
   const totalCells = totalDays.length;
   const rowCount = Math.ceil(totalCells / 7);
   const paddedDays = [...totalDays];
-  const [draggingDay, setDraggingDay] = useState(null); // which day is being dragged right now
-  
+  const [draggingDay, setDraggingDay] = useState(null);
+
   while (paddedDays.length < rowCount * 7) paddedDays.push(null);
 
-  // ---- mood state ----
   const [moods, setMoods] = useState({});
 
-  // ---- load saved moods once when app starts ----
   useEffect(() => {
     const saved = localStorage.getItem('moods');
     if (saved) setMoods(JSON.parse(saved));
   }, []);
 
-  // ---- save moods every time they change ----
   useEffect(() => {
     localStorage.setItem('moods', JSON.stringify(moods));
   }, [moods]);
 
-  // ---- click handler to cycle moods ----
   function handleDayClick(day) {
     setMoods((prev) => {
       const existing = prev[day] || { x: 70, y: 8, emoji: '' };
@@ -48,21 +44,41 @@ function App() {
     });
   }
 
+  // ---- NEW: handles the file picker selection ----
+  function handlePhotoUpload(day, event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setMoods((prev) => ({
+        ...prev,
+        [day]: {
+          ...prev[day],
+          photo: reader.result,
+          photoX: prev[day]?.photoX ?? 20,
+          photoY: prev[day]?.photoY ?? 40
+        }
+      }));
+    };
+    reader.readAsDataURL(file);
+  }
+
   return (
-    <div  style={{ minHeight: '100vh', width: '100%', padding: '40px', fontFamily: 'Handlee, cursive' }}>
+    <div style={{ minHeight: '100vh', width: '100%', padding: '40px', fontFamily: 'Handlee, cursive' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <h1 style={{ margin: '0 0 5px 0', fontSize: '28px', color: '#222' }}>Mood Tracker</h1>
 
         <div style={{
           position: 'relative',
-          width: '912px', // Tweak slightly to 912px to account for the outer borders cleanly
-          height: `${rowCount * 130 + 2}px`,
+          width: '910px',
+          height: `${rowCount * 130 }px`,
+          boxSizing: 'border-box',
           backgroundColor: '#fafafa',
           border: '2px solid #040408',
-          borderRadius: '8px',
+          borderRadius: '0px',
           boxShadow: '0 10px 25px rgba(0, 0, 0, 0.05)',
-          margin: '30px auto 0 auto',
-          overflow: 'hidden'
+          margin: '30px auto 0 auto'
         }}>
 
           <div style={{
@@ -74,14 +90,18 @@ function App() {
           }}>
 
             {paddedDays.map((day, index) => {
-              const isLastColumn = (index + 1) % 7 === 0;
+             /* const isLastColumn = (index + 1) % 7 === 0;
               const isLastRow = index >= (rowCount - 1) * 7;
 
-              // Crisp border setup: inner cells get borders on the right and bottom
               const borderStyle = {
                 borderRight: isLastColumn ? 'none' : '2px solid #040408',
                 borderBottom: isLastRow ? 'none' : '2px solid #040408'
-              };
+              }; 
+              */
+             const borderStyle ={
+              borderRight: '2px solid #040408',
+              borderBottom: '2px solid #040408'
+             }
 
               return (
                 <div
@@ -90,21 +110,30 @@ function App() {
                     ...borderStyle,
                     boxSizing: 'border-box',
                     backgroundColor: '#fafafa',
-                    position: 'relative' 
+                    position: 'relative'
                   }}
                 >
                   {day && (
                     <div
                       onClick={() => handleDayClick(day)}
                       onMouseMove={(e) => {
-                        if (draggingDay !== day) return;
+                        // ---- CHANGED: now handles both emoji AND photo dragging ----
+                        if (!draggingDay) return;
                         const rect = e.currentTarget.getBoundingClientRect();
                         const newX = e.clientX - rect.left;
                         const newY = e.clientY - rect.top;
-                        setMoods((prev) => ({
-                          ...prev,
-                          [day]: { ...prev[day], x: newX, y: newY }
-                        }));
+
+                        if (draggingDay === day) {
+                          setMoods((prev) => ({
+                            ...prev,
+                            [day]: { ...prev[day], x: newX, y: newY }
+                          }));
+                        } else if (draggingDay === `photo-${day}`) {
+                          setMoods((prev) => ({
+                            ...prev,
+                            [day]: { ...prev[day], photoX: newX, photoY: newY }
+                          }));
+                        }
                       }}
                       onMouseUp={() => setDraggingDay(null)}
                       style={{ position: 'relative', width: '100%', height: '100%', cursor: 'pointer' }}
@@ -141,11 +170,61 @@ function App() {
                           {moods[day]?.emoji}
                         </div>
                       )}
+
+                      {/* ---- NEW: hidden file input, one per day ---- */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id={`photo-upload-${day}`}
+                        style={{ display: 'none' }}
+                        onChange={(e) => handlePhotoUpload(day, e)}
+                      />
+
+                      {/* ---- NEW: polaroid photo (draggable) or upload button ---- */}
+                      {moods[day]?.photo ? (
+                        <div
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            setDraggingDay(`photo-${day}`);
+                          }}
+                          style={{
+                            position: 'absolute',
+                            left: `${moods[day]?.photoX ?? 20}px`,
+                            top: `${moods[day]?.photoY ?? 40}px`,
+                            backgroundColor: '#fff',
+                            padding: '4px 4px 12px 4px',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                            cursor: 'grab',
+                            transform: 'rotate(-3deg)',
+                            zIndex: draggingDay === `phote-${day}` ? 999:10
+                          }}
+                        >
+                          <img
+                            src={moods[day].photo}
+                            style={{ width: '60px', height: '60px', objectFit: 'cover', display: 'block' }}
+                          />
+                        </div>
+                      ) : (
+                        <label
+                          htmlFor={`photo-upload-${day}`}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            position: 'absolute',
+                            bottom: '4px',
+                            left: '4px',
+                            fontSize: '10px',
+                            color: '#999',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + photo
+                        </label>
+                      )}
                     </div>
                   )}
                 </div>
-              ); // Closing tag for return item loop
-            })} {/* Closing tag for map function */}
+              );
+            })}
 
           </div>
         </div>
