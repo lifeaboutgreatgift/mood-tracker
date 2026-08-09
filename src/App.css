@@ -23,8 +23,7 @@ body::-webkit-scrollbar {
 
 /* ---- Day cell ---- */
 .day-cell {
-  border-right: 2px solid #040408;
-  border-bottom: 2px solid #040408;
+  border: 1px solid #040408;
   box-sizing: border-box;
   position: relative;
 }
