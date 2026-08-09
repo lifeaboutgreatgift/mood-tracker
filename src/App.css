@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Handlee&display=swap');
 
-/* src/index.css */
 * {
   box-sizing: border-box;
 }
@@ -13,32 +12,66 @@ html, body, #root {
   background-color: #fafafa;
   font-family: sans-serif;
 }
+
 body::-webkit-scrollbar {
   display: none;
 }
 
-
 .calendar {
   font-family: 'Handlee', cursive;
 }
-.calendar-header,
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+
+/* ---- Day cell ---- */
+.day-cell {
+  border-right: 2px solid #040408;
+  border-bottom: 2px solid #040408;
+  box-sizing: border-box;
+  position: relative;
 }
 
-.weekday-label {
-  text-align: left;
-  font-weight: bold;
-  padding: 8px;
+/* ---- Small "+ photo / + note / + text" trigger buttons ---- */
+.cell-action-btn {
+  position: absolute;
+  font-size: 9px;
+  color: #999;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.calendar-cell {
-  border: 1px solid #abd1c6;
-  min-height: 80px;
-  padding: 6px;
+/* ---- Shared by every draggable item on the calendar ---- */
+.draggable-item {
+  position: absolute;
+  cursor: grab;
+  pointer-events: auto;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-.day-number {
-  font-size: 14px;
+.mood-emoji {
+  font-size: 20px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.polaroid-frame {
+  background-color: #fff;
+  padding: 4px 4px 12px 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transform: rotate(-3deg);
+}
+
+.sticky-note {
+  background-color: #fff9c4;
+  padding: 4px 8px;
+  font-size: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  max-width: 100px;
+}
+
+.free-text {
+  font-size: 13px;
+  color: #333;
+  white-space: nowrap;
 }
