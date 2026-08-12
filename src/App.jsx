@@ -26,25 +26,58 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
 const EMOJI_CYCLE = ['😊', '😴', '😡', '🥲', '😎', ''];
 
 const BURGER_LAYERS = [
-  { id: 'top-bun', img: topBun, height: 190, width: 220, hitWidth: 140, hitHeight: 90 },
-  { id: 'lettuce', img: lettuce, height: 160, width: 260, hitWidth: 160, hitHeight: 80 },
-  { id: 'patty', img: patty, height: 160, width: 240, hitWidth: 150, hitHeight: 80 },
-  { id: 'bottom-bun', img: bottomBun, height: 180, width: 300, hitWidth: 180, hitHeight: 100 }
+  {
+    id: 'top-bun',
+    img: topBun,
+    height: 190,
+    width: 220,
+    hitWidth: 130,
+    hitHeight: 70,
+    offsetY: 70,
+    hitOffsetX: 0,
+    hitOffsetY: -20,
+    label: 'Emoji'
+  },
+  {
+    id: 'lettuce',
+    img: lettuce,
+    height: 160,
+    width: 260,
+    hitWidth: 130,
+    hitHeight: 50,
+    offsetY: 165,
+    hitOffsetX: 0,
+    hitOffsetY: -35,
+    label: 'Photo'
+  },
+  {
+    id: 'patty',
+    img: patty,
+    height: 160,
+    width: 240,
+    hitWidth: 110,
+    hitHeight: 40,
+    offsetY: 170,
+    hitOffsetX: 5,
+    hitOffsetY: 10,
+    label: 'Text'
+  },
+  {
+    id: 'bottom-bun',
+    img: bottomBun,
+    height: 180,
+    width: 300,
+    hitWidth: 120,
+    hitHeight: 60,
+    offsetY: 190,
+    hitOffsetX: 5,
+    hitOffsetY: 40,
+    label: 'Note'
+  }
 ];
 
-const LAYER_GAPS = [-100, -150, -150];
-const BURGER_MENU_HEIGHT = BURGER_LAYERS.reduce((sum, layer, index) => {
-  const gap = index < LAYER_GAPS.length ? LAYER_GAPS[index] : 0;
-  return sum + layer.height + gap;
-}, 0);
-
-function getOpenOffset(index) {
-  let offset = 0;
-  for (let i = 0; i < index; i++) {
-    offset += BURGER_LAYERS[i].height + LAYER_GAPS[i];
-  }
-  return offset;
-}
+const BURGER_MENU_WIDTH = Math.max(...BURGER_LAYERS.map((layer) => layer.width));
+const BURGER_MENU_HEIGHT = Math.max(...BURGER_LAYERS.map((layer) => layer.offsetY + layer.height)) + 10;
 
 /*
 function getOpenOffset(index, menuOpen) {
@@ -67,7 +100,7 @@ function BurgerMenu({ onTopBunClick, onLettuceClick, onPattyClick, onBottomBunCl
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div style={{ position: 'relative', width: '220px', height: '260px' }}>
+    <div style={{ position: 'relative', width: '220px', height: `${BURGER_MENU_HEIGHT}px` }}>
       <img
         src={burgerImg}
         onClick={() => setMenuOpen(true)}
@@ -83,18 +116,52 @@ function BurgerMenu({ onTopBunClick, onLettuceClick, onPattyClick, onBottomBunCl
 
       {menuOpen && (
         <>
-          <div style={{ position: 'absolute', top: '30px', left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
-            <button onClick={() => { onTopBunClick(); setMenuOpen(false); }} style={{ padding: '8px 12px', cursor: 'pointer' }}>Emoji</button>
-          </div>
-          <div style={{ position: 'absolute', top: '90px', left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
-            <button onClick={() => { onLettuceClick(); setMenuOpen(false); }} style={{ padding: '8px 12px', cursor: 'pointer' }}>Photo</button>
-          </div>
-          <div style={{ position: 'absolute', top: '150px', left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
-            <button onClick={() => { onPattyClick(); setMenuOpen(false); }} style={{ padding: '8px 12px', cursor: 'pointer' }}>Text</button>
-          </div>
-          <div style={{ position: 'absolute', top: '210px', left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
-            <button onClick={() => { onBottomBunClick(); setMenuOpen(false); }} style={{ padding: '8px 12px', cursor: 'pointer' }}>Note</button>
-          </div>
+          {BURGER_LAYERS.map((layer, index) => {
+            const actions = {
+              'top-bun': onTopBunClick,
+              'lettuce': onLettuceClick,
+              'patty': onPattyClick,
+              'bottom-bun': onBottomBunClick
+            };
+
+            return (
+              <div
+                key={layer.id}
+                style={{
+                  position: 'absolute',
+                  top: `${6 + layer.offsetY}px`,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 100 - index,
+                  width: `${layer.width}px`,
+                  height: `${layer.height}px`,
+                  backgroundImage: `url(${layer.img})`,
+                  backgroundSize: 'contain',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center',
+                  pointerEvents: 'none'
+                }}
+              >
+                <button
+                  onClick={() => { actions[layer.id](); setMenuOpen(false); }}
+                  title={layer.label}
+                  style={{
+                    position: 'absolute',
+                    top: `calc(50% + ${layer.hitOffsetY || 0}px)`,
+                    left: `calc(50% + ${layer.hitOffsetX || 0}px)`,
+                    transform: 'translate(-50%, -50%)',
+                    width: `${layer.hitWidth}px`,
+                    height: `${layer.hitHeight}px`,
+                    border: '1px dashed rgba(0,0,0,0.5)',
+                    background: 'rgba(255,255,255,0.05)',
+                    padding: 0,
+                    cursor: 'pointer',
+                    pointerEvents: 'auto'
+                  }}
+                />
+              </div>
+            );
+          })}
         </>
       )}
     </div>
@@ -272,8 +339,9 @@ function App() {
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ 
           position: 'fixed',
-          left: '20px',
-          top: '20px',
+          left: '50px',
+          top: '80px',
+          transform: 'translateX(10%)',
           zIndex: 100
           }}>
           <BurgerMenu
