@@ -169,7 +169,16 @@ function BurgerMenu({ onTopBunClick, onLettuceClick, onPattyClick, onBottomBunCl
 }
 
 function App() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => {
+    try {
+      const saved = localStorage.getItem('currentDate');
+      return saved ? new Date(saved) : new Date();
+    
+    } catch {
+      return new Date();
+    }
+  });
+
   const monthKey = getMonthKey(currentDate);
 
   const totalDays = getMonthDays(currentDate.getFullYear(), currentDate.getMonth());
@@ -184,37 +193,43 @@ function App() {
   const [draggingItem, setDraggingItem] = useState(null);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingTextId, setEditingTextId] = useState(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const e = localStorage.getItem('emojis'); if (e) setEmojis(JSON.parse(e));
-      const p = localStorage.getItem('photos'); if (p) setPhotos(JSON.parse(p));
-      const n = localStorage.getItem('notes'); if (n) setNotes(JSON.parse(n));
-      const t = localStorage.getItem('texts'); if (t) setTexts(JSON.parse(t));
-    } catch (err) {
-      console.warn('Could not load saved data:', err);
-    }
-  }, []);
+  try {
+    const e = localStorage.getItem('emojis'); if (e) setEmojis(JSON.parse(e));
+    const p = localStorage.getItem('photos'); if (p) setPhotos(JSON.parse(p));
+    const n = localStorage.getItem('notes'); if (n) setNotes(JSON.parse(n));
+    const t = localStorage.getItem('texts'); if (t) setTexts(JSON.parse(t));
+  } catch (err) {
+    console.warn('Could not load saved data:', err);
+  }
+  setHasLoaded(true);
+}, []);
 
-  useEffect(() => {
-    try { localStorage.setItem('emojis', JSON.stringify(emojis)); }
-    catch (err) { console.warn('Could not save emojis:', err); }
-  }, [emojis]);
+ useEffect(() => {
+  if (!hasLoaded) return;
+  try { localStorage.setItem('emojis', JSON.stringify(emojis)); }
+  catch (err) { console.warn('Could not save emojis:', err); }
+}, [emojis, hasLoaded]);
 
-  useEffect(() => {
-    try { localStorage.setItem('photos', JSON.stringify(photos)); }
-    catch (err) { console.warn('Could not save photos — storage may be full:', err); }
-  }, [photos]);
+useEffect(() => {
+  if (!hasLoaded) return;
+  try { localStorage.setItem('photos', JSON.stringify(photos)); }
+  catch (err) { console.warn('Could not save photos — storage may be full:', err); }
+}, [photos, hasLoaded]);
 
-  useEffect(() => {
-    try { localStorage.setItem('notes', JSON.stringify(notes)); }
-    catch (err) { console.warn('Could not save notes:', err); }
-  }, [notes]);
+ useEffect(() => {
+  if (!hasLoaded) return;
+  try { localStorage.setItem('notes', JSON.stringify(notes)); }
+  catch (err) { console.warn('Could not save notes:', err); }
+}, [notes, hasLoaded]);
 
-  useEffect(() => {
-    try { localStorage.setItem('texts', JSON.stringify(texts)); }
-    catch (err) { console.warn('Could not save texts:', err); }
-  }, [texts]);
+useEffect(() => {
+  if (!hasLoaded) return;
+  try { localStorage.setItem('texts', JSON.stringify(texts)); }
+  catch (err) { console.warn('Could not save texts:', err); }
+}, [texts, hasLoaded]);
 
   useEffect(() => {
     if (!draggingItem) return;
@@ -245,6 +260,14 @@ function App() {
       window.removeEventListener('mouseup', handleUp);
     };
   }, [draggingItem]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('currentDate', currentDate.toISOString());
+    } catch (err) {
+      console.warn('Could not save current month:', err);
+    }
+  }, [currentDate]);
 
   function spawnEmoji() {
     setEmojis((prev) => [...prev, {
@@ -399,7 +422,8 @@ function App() {
                   zIndex: draggingItem?.type === 'emoji' && draggingItem.id === item.id ? 999 : 10
                 }}
               >
-                <button
+               <button
+                  className="delete-btn"
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); deleteEmoji(item.id); }}
                   style={{
@@ -426,13 +450,14 @@ function App() {
                   zIndex: draggingItem?.type === 'photo' && draggingItem.id === item.id ? 999 : 10
                 }}
               >
-                <button
+               <button
+                  className="delete-btn"
                   onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => { e.stopPropagation(); deletePhoto(item.id); }}
+                  onClick={(e) => { e.stopPropagation(); deleteEmoji(item.id); }}
                   style={{
-                    position: 'absolute', top: '-8px', right: '-8px', width: '18px', height: '18px',
+                    position: 'absolute', top: '-10px', right: '-10px', width: '14px', height: '14px',
                     borderRadius: '50%', border: '1px solid #999', background: '#fff',
-                    fontSize: '11px', color: '#333',
+                    fontSize: '8px', color: '#333',
                     lineHeight: '1', cursor: 'pointer', padding: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}
@@ -468,17 +493,31 @@ function App() {
             ))}
 
             {currentNotes.map((note) => (
-              <div
-                key={note.id}
-                className="draggable-item sticky-note"
-                onMouseDown={(e) => { e.preventDefault(); setDraggingItem({ type: 'note', id: note.id }); }}
-                style={{
-                  left: `${note.x}px`, top: `${note.y}px`,
-                  zIndex: draggingItem?.type === 'note' && draggingItem.id === note.id ? 999 : 10
-                }}
-              >
-                {editingNoteId === note.id ? (
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <div
+                  key={note.id}
+                  className="draggable-item sticky-note"
+                  onMouseDown={(e) => { e.preventDefault(); setDraggingItem({ type: 'note', id: note.id }); }}
+                  style={{
+                    left: `${note.x}px`, top: `${note.y}px`,
+                    zIndex: draggingItem?.type === 'note' && draggingItem.id === note.id ? 999 : 10
+                  }}
+                >
+                  <button
+                    className="delete-btn"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }}
+                    style={{
+                      position: 'absolute', top: '-10px', right: '-10px', width: '16px', height: '16px',
+                      borderRadius: '50%', border: '1px solid #999', background: '#fff',
+                      fontSize: '10px', color: '#333',
+                      lineHeight: '1', cursor: 'pointer', padding: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                  >
+                    ×
+                  </button>
+
+                  {editingNoteId === note.id ? (
                     <input
                       autoFocus
                       value={note.text}
@@ -487,18 +526,10 @@ function App() {
                       onMouseDown={(e) => e.stopPropagation()}
                       style={{ fontSize: '12px', width: '70px', fontFamily: 'inherit', color: '#333' }}
                     />
-                    <button
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={() => deleteNote(note.id)}
-                      style={{ fontSize: '10px', cursor: 'pointer', border: 'none', background: 'none' }}
-                    >
-                      🗑
-                    </button>
-                  </div>
-                ) : (
-                  <span onClick={() => setEditingNoteId(note.id)}>{note.text}</span>
-                )}
-              </div>
+                  ) : (
+                    <span onClick={() => setEditingNoteId(note.id)}>{note.text}</span>
+                  )}
+                </div>
             ))}
 
             {currentTexts.map((t) => (
@@ -511,29 +542,35 @@ function App() {
                   zIndex: draggingItem?.type === 'text' && draggingItem.id === t.id ? 999 : 10
                 }}
               >
+                <button
+                  className="delete-btn"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); deleteText(t.id); }}
+                  style={{
+                    position: 'absolute', top: '-10px', right: '-10px', width: '16px', height: '16px',
+                    borderRadius: '50%', border: '1px solid #999', background: '#fff',
+                    fontSize: '10px', color: '#333',
+                    lineHeight: '1', cursor: 'pointer', padding: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                >
+                  ×
+                </button>
+
                 {editingTextId === t.id ? (
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <input
-                      autoFocus
-                      value={t.text}
-                      onChange={(e) => updateTextValue(t.id, e.target.value)}
-                      onBlur={() => setEditingTextId(null)}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      style={{ fontSize: '13px', fontFamily: 'inherit', border: 'none', borderBottom: '1px solid #ccc', background: 'transparent', color: '#333' }}
-                    />
-                    <button
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={() => deleteText(t.id)}
-                      style={{ fontSize: '10px', cursor: 'pointer', border: 'none', background: 'none' }}
-                    >
-                      🗑
-                    </button>
-                  </div>
+                  <input
+                    autoFocus
+                    value={t.text}
+                    onChange={(e) => updateTextValue(t.id, e.target.value)}
+                    onBlur={() => setEditingTextId(null)}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    style={{ fontSize: '13px', fontFamily: 'inherit', border: 'none', borderBottom: '1px solid #ccc', background: 'transparent', color: '#333' }}
+                  />
                 ) : (
                   <span onClick={() => setEditingTextId(t.id)}>{t.text}</span>
                 )}
               </div>
-            ))}
+           ))}
 
           </div>
         </div>
