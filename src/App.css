@@ -23,9 +23,10 @@ body::-webkit-scrollbar {
 
 /* ---- Day cell ---- */
 .day-cell {
-  border: 1px solid #040408;
+  border: 1px solid #d8cfc4;
   box-sizing: border-box;
   position: relative;
+  background: #fffdf8;
 }
 
 /* ---- Small "+ photo / + note / + text" trigger buttons ---- */
