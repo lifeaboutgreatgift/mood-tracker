@@ -353,12 +353,19 @@ useEffect(() => {
   const currentTexts = texts.filter((t) => t.monthKey === monthKey);
 
   return (
-    <div style={{
-      minHeight: '100vh', width: '100%', padding: '40px', fontFamily: 'Handlee, cursive',
-      backgroundImage: `url(${bgImage})`, backgroundSize: 'auto',
-      backgroundPosition: 'center', backgroundRepeat: 'repeat'
-      
-    }}>
+    <div style={{ minHeight: '100vh', width: '100%', position: 'relative', fontFamily: 'Handlee, cursive' }}>
+
+      <div style={{
+        minHeight: '100vh',
+        width: '100%',
+        fontFamily: 'Handlee, cursive',
+        backgroundImage: `linear-gradient(rgba(255,255,255,0.65), rgba(255,255,255,0.65)), url(${bgImage})`,
+        backgroundSize: 'auto',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'repeat'
+      }}>
+
+      <div style={{ padding: '40px' }}></div>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ 
           position: 'fixed',
@@ -375,38 +382,104 @@ useEffect(() => {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '10px' }}>
-          <button onClick={goToPrevMonth} style={{ cursor: 'pointer', fontFamily: 'inherit', fontSize: '18px' }}>←</button>
-          <span style={{ fontSize: '18px', fontWeight: '600' }}>
-            {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '18px', marginTop: '20px', width: '910px', margin: '20px auto 0 auto' }}>
+
+          {/* big month number, with arrows tucked beside it */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={goToPrevMonth}
+              style={{
+                cursor: 'pointer', fontFamily: 'inherit', fontSize: '16px',
+                background: 'none', border: 'none', color: '#a89685', padding: '4px'
+              }}
+            >
+              ←
+            </button>
+
+            <span style={{
+              fontSize: '54px', fontWeight: '700', color: '#3a3128',
+              lineHeight: '1', minWidth: '75px', textAlign: 'center'
+            }}>
+              {String(currentDate.getMonth() + 1).padStart(2, '0')}
+            </span>
+
+            <button
+              onClick={goToNextMonth}
+              style={{
+                cursor: 'pointer', fontFamily: 'inherit', fontSize: '16px',
+                background: 'none', border: 'none', color: '#a89685', padding: '4px'
+              }}
+            >
+              →
+            </button>
+          </div>
+
+          {/* month name + year, next to the big number */}
+          <span style={{ fontSize: '20px', fontWeight: '600', color: '#3a3128', letterSpacing: '1px' }}>
+            {MONTH_NAMES[currentDate.getMonth()].toUpperCase()} {currentDate.getFullYear()}
           </span>
-          <button onClick={goToNextMonth} style={{ cursor: 'pointer', fontFamily: 'inherit', fontSize: '18px' }}>→</button>
+
         </div>
 
         <div
           id="calendar-box"
           style={{
-            position: 'relative', width: '910px', height: `${rowCount * 130}px`,
+            position: 'relative', width: '910px', height: `${rowCount * 130 + 44}px`,
             boxSizing: 'border-box', backgroundColor: '#fafafa',
             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.05)', margin: '30px auto 0 auto'
           }}
         >
+
+          {/* NEW: weekday header row */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 130px)',
+            borderBottom: '1px solid #d8cfc4'
+          }}>
+            {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day) => (
+                <div
+                  key={day}
+                    style={{
+                      textAlign: 'center',
+                      padding: '10px 0',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      letterSpacing: '1px',
+                      color: '#a89685'
+                    }}
+                >
+                  {day}
+                </div>
+          ))}
+        </div>
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(7, 130px)',
             gridTemplateRows: `repeat(${rowCount}, 130px)`, width: '100%', height: '100%'
           }}>
-            {paddedDays.map((day, index) => (
-              <div key={index} className="day-cell" style={{ backgroundColor: 'transparent' }}>
-                {day && (
-                  <span style={{
-                    position: 'absolute', top: '10px', left: '7px',
-                    fontWeight: '600', color: '#000', fontSize: '14px', userSelect: 'none'
-                  }}>
-                    {String(day).padStart(2, '0')}
-                  </span>
-                )}
-              </div>
-            ))}
+           {paddedDays.map((day, index) => {
+              const isToday = day && new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString() === new Date().toDateString();
+              const isWeekend = index % 7 === 0 || index % 7 === 6;
+
+              return (
+                <div
+                  key={index}
+                  className="day-cell"
+                  style={{
+                    backgroundColor: isToday ? '#fff4e0' : isWeekend ? '#f7f3ec' : 'transparent'
+                  }}
+                >
+                  {day && (
+                    <span style={{
+                      position: 'absolute', top: '10px', left: '7px',
+                      fontWeight: '600', color: isToday ? '#c9821a' : '#8a7d6f',
+                      fontSize: '14px', userSelect: 'none'
+                    }}>
+                      {String(day).padStart(2, '0')}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
@@ -425,7 +498,7 @@ useEffect(() => {
                <button
                   className="delete-btn"
                   onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => { e.stopPropagation(); deleteEmoji(item.id); }}
+                  onClick={(e) => { e.stopPropagation(); deletePhoto(item.id); }}
                   style={{
                     position: 'absolute', top: '-10px', right: '-10px', width: '14px', height: '14px',
                     borderRadius: '50%', border: '1px solid #999', background: '#fff',
@@ -573,6 +646,7 @@ useEffect(() => {
            ))}
 
           </div>
+        </div>
         </div>
       </div>
     </div>
