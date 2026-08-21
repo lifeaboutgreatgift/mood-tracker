@@ -362,10 +362,11 @@ useEffect(() => {
         backgroundImage: `linear-gradient(rgba(255,255,255,0.65), rgba(255,255,255,0.65)), url(${bgImage})`,
         backgroundSize: 'auto',
         backgroundPosition: 'center',
-        backgroundRepeat: 'repeat'
+        backgroundRepeat: 'repeat',
+        backgroundAttachment: 'scroll'
       }}>
 
-      <div style={{ padding: '40px' }}></div>
+    <div style={{ padding: '40px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ 
           position: 'fixed',
@@ -424,7 +425,7 @@ useEffect(() => {
         <div
           id="calendar-box"
           style={{
-            position: 'relative', width: '910px', height: `${rowCount * 130 + 44}px`,
+            position: 'sticky', top: '20px', width: '910px', height: `${rowCount * 130 + 44}px`,
             boxSizing: 'border-box', backgroundColor: '#fafafa',
             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.05)', margin: '30px auto 0 auto'
           }}
@@ -648,6 +649,7 @@ useEffect(() => {
           </div>
         </div>
         </div>
+      </div>
       </div>
     </div>
   );
