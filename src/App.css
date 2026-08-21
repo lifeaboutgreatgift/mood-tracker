@@ -8,9 +8,14 @@ html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
-  min-height: 100%;
+  min-height: 100vh;
   background-color: #fafafa;
   font-family: sans-serif;
+}
+
+html,
+body{
+  overflow-x: hidden;
 }
 
 body::-webkit-scrollbar {
